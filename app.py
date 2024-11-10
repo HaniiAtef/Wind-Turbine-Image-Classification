@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import transforms
 from io import BytesIO
+import os
 
 app = Flask(__name__)
 
@@ -28,15 +29,6 @@ class DeeperCNN(nn.Module):
         x = self.fc3(x)
 
         return x
-
-# Load two models
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-model1 = DeeperCNN().to(device)
-model1.load_state_dict(torch.load('model1.pth', map_location=device, weights_only=True))
-model1.eval()
-
-
 
 
 
@@ -62,9 +54,16 @@ class DeeperCNN2(nn.Module):
         return x
     
 
-model2 = DeeperCNN2().to(device)
-model2.load_state_dict(torch.load('complex_model.pth', map_location=device, weights_only=True))
-model2.eval()
+def load_model(model_name):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    if model_name == "model1":
+        model = DeeperCNN().to(device)
+        model.load_state_dict(torch.load('model1.pth', map_location=device))
+    elif model_name == "model2":
+        model = DeeperCNN2().to(device)
+        model.load_state_dict(torch.load('complex_model.pth', map_location=device))
+    model.eval()
+    return model
 
 # Define image transformation
 img_width, img_height = 128, 128
@@ -76,6 +75,8 @@ data_transforms = transforms.Compose([
 ])
 
 class_names = ['There is no Wind Turbine in the image', 'The image does have a Wind Turbine']
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def predict(image: Image.Image, model):
     image = data_transforms(image).unsqueeze(0).to(device)
@@ -96,26 +97,27 @@ def results():
         return render_template('index.html', message='No file uploaded')
 
     file = request.files['image']
-
     if file.filename == '':
         flash('No selected file')
         return render_template('index.html', message='No file selected')
 
     if file:
-        # Open the image using PIL
         image = Image.open(file.stream)
-        
-        if 'model1' in request.form:
-            output = predict(image, model1)
-        elif 'model2' in request.form:
-            output = predict(image, model2)
-        else:
-            output = 'No model selected'
 
+        # Load the selected model only when needed
+        if 'model1' in request.form:
+            model = load_model("model1")
+        elif 'model2' in request.form:
+            model = load_model("model2")
+        else:
+            return render_template('index.html', message='No model selected')
+
+        output = predict(image, model)
         return render_template('index.html', message='Prediction:', pred_class=output)
 
 if __name__ == '__main__':
-    app.run()
+    port = int(os.environ.get("PORT", 5000))  # Get port for Render
+    app.run(host="0.0.0.0", port=port)
 
 
 
