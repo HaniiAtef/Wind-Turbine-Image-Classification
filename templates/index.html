@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Staatliches&display=swap" rel="stylesheet">
+    
+</head>
+<body class="image_body">
+    <h1 class="title">Wind Turbine Image Classification</h1>
+    <section class="image_body">
+        <form action="{{ url_for('results') }}" method="post" enctype="multipart/form-data">
+            <div class="container">
+                    <!-- <input type="file" name="" id="file" accept="image/*" hidden> -->
+                    <input type="file" id="imageUpload" name="image" accept="image/*" required hidden>
+                    <div class="img-area" data-img="">
+                        <i class='bx bxs-cloud-upload icon'></i>
+                        <h3>Upload Image</h3>
+                        <p>Predict whether the image has a Wind Turbine of Not</p>
+                    </div>
+                    <button class="select-image">Select Image</button>
+                    <div class="button"> 
+                        <button type="submit" name="model1" class="submitButton">Predict with Model 1</button>
+                        <button type="submit" name="model2" class="submitButton">Predict with Model 2</button>
+                    </div>
+            </div>
+        </form>
+        
+        {% if message or pred_class %}
+        <p class="para">{{ message }} <b>{{ pred_class }}</b></p>
+        {% endif %}
+        
+    </section>
+    <script src="{{url_for('static', filename='script.js')}}"></script>
+</body>
+</html>
